@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!129 &1
+PlayerSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 26
+  productGUID: 947e923e32b849e7b2354c0e66d95321
+  AndroidProfiler: 0
+  defaultScreenOrientation: 3
+  targetDevice: 2
+  useOnDemandResources: 0
+  currentPlatform: 
+  defaultScreenWidth: 1080
+  defaultScreenHeight: 1920
+  defaultScreenWidthWeb: 960
+  defaultScreenHeightWeb: 600
+  m_RenderingPath: 1
+  m_MobileRenderingPath: 1
+  activeColorSpace: 0
+  m_PlatformRequiresReadableAssets: 0
+  productName: BubbleShot
+  companyName: BorisSokolov
+  bundleVersion: 1.0.0
+  activeInputHandler: 2
