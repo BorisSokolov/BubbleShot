@@ -5,6 +5,7 @@ using BubbleShot.Core;
 using BubbleShot.Runtime.Presentation;
 using BubbleShot.Runtime.Audio;
 using BubbleShot.Runtime.Haptics;
+using BubbleShot.Runtime.Tutorial;
 using BubbleShot.UI.HUD;
 using BubbleShot.UI.Screens;
 
@@ -24,6 +25,7 @@ namespace BubbleShot.Runtime.Lifecycle
         [SerializeField] private HapticFeedbackPlaceholder? _haptics;
         [SerializeField] private ResultsScreenPlaceholder? _resultsScreen;
         [SerializeField] private FloatingCalloutManager? _callouts;
+        [SerializeField] private TutorialOverlay? _tutorialOverlay;
 
         public AuthoritativeEngine Engine { get; private set; } = null!;
         public bool IsResolvingAnimation { get; private set; }
@@ -87,6 +89,7 @@ namespace BubbleShot.Runtime.Lifecycle
             }
 
             UpdateHUD();
+            _tutorialOverlay?.CheckAndShow(CurrentLevel.LevelNumber, this);
             GameLogger.LogInfo("GameplayController", $"Level {CurrentLevel.LevelNumber} ('{CurrentLevel.LevelName}') initialized successfully.");
         }
 

@@ -147,6 +147,26 @@ namespace BubbleShot.Core.Tests
             Assert.That(levels[9].BasePressureTime, Is.LessThan(levels[0].BasePressureTime));
         }
 
+        [Test]
+        public void SaveData_SeenTutorials_TracksAndSerializesCorrectly()
+        {
+            var save = new SaveDataV1();
+            Assert.That(save.SeenTutorials, Is.Empty);
+
+            save.SeenTutorials.Add(1);
+            save.SeenTutorials.Add(2);
+            save.SeenTutorials.Add(4);
+
+            SaveSystem.SaveAtomic(_testSavePath, save);
+            var loaded = SaveSystem.LoadSafe(_testSavePath);
+
+            Assert.That(loaded.SeenTutorials, Has.Count.EqualTo(3));
+            Assert.That(loaded.SeenTutorials, Does.Contain(1));
+            Assert.That(loaded.SeenTutorials, Does.Contain(2));
+            Assert.That(loaded.SeenTutorials, Does.Contain(4));
+            Assert.That(loaded.SeenTutorials, Does.Not.Contain(3));
+        }
+
         #endregion
     }
 }

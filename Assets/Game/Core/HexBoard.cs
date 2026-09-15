@@ -151,6 +151,58 @@ namespace BubbleShot.Core
             return new Vector2D(x, y);
         }
 
+        public HexCoord FindClosestEmptyCoord(Vector2D localPos)
+        {
+            int approxRow = (int)MathF.Round(-localPos.Y / Geometry.RowHeight);
+            int minR = Math.Clamp(approxRow - 2, 0, Geometry.MaxRows - 1);
+            int maxR = Math.Clamp(approxRow + 2, 0, Geometry.MaxRows - 1);
+
+            HexCoord bestCoord = new HexCoord(0, 0);
+            float bestDistSq = float.MaxValue;
+
+            for (int r = minR; r <= maxR; r++)
+            {
+                int cols = GetColumnCount(r);
+                for (int c = 0; c < cols; c++)
+                {
+                    var coord = new HexCoord(r, c);
+                    if (IsOccupied(coord)) continue;
+
+                    var cellPos = CoordToLocalPosition(coord);
+                    float distSq = Vector2D.DistanceSquared(localPos, cellPos);
+
+                    if (distSq < bestDistSq - Vector2D.Epsilon)
+                    {
+                        bestDistSq = distSq;
+                        bestCoord = coord;
+                    }
+                    else if (MathF.Abs(distSq - bestDistSq) <= Vector2D.Epsilon)
+                    {
+                        if (coord.CompareTo(bestCoord) < 0)
+                        {
+                            bestDistSq = distSq;
+                            bestCoord = coord;
+                        }
+                    }
+                }
+            }
+
+            if (bestDistSq == float.MaxValue)
+            {
+                for (int r = 0; r < Geometry.MaxRows; r++)
+                {
+                    int cols = GetColumnCount(r);
+                    for (int c = 0; c < cols; c++)
+                    {
+                        var coord = new HexCoord(r, c);
+                        if (!IsOccupied(coord)) return coord;
+                    }
+                }
+            }
+
+            return bestCoord;
+        }
+
         /// <summary>
         /// Inserts a new procedural row at Row 0 and shifts existing rows downward.
         /// Returns true if the board is still safe, or false if any ball crossed the DangerRow.
