@@ -19,6 +19,7 @@ namespace BubbleShot.Core
         }
 
         public static Vector2D Zero => new Vector2D(0f, 0f);
+        public static Vector2D One => new Vector2D(1f, 1f);
         public static Vector2D Up => new Vector2D(0f, 1f);
         public static Vector2D Down => new Vector2D(0f, -1f);
         public static Vector2D Left => new Vector2D(-1f, 0f);

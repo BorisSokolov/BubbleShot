@@ -29,6 +29,22 @@ namespace BubbleShot.Runtime.Presentation
             SetVisible(false);
         }
 
+        private void Update()
+        {
+            if (_lineRenderer != null && _lineRenderer.enabled && _lineRenderer.material != null)
+            {
+                // Animate dashed texture flow
+                _lineRenderer.material.mainTextureOffset = new Vector2(-Time.time * 2f, 0f);
+            }
+
+            if (_landingReticle != null && _landingReticle.gameObject.activeSelf)
+            {
+                // Reticle pulsating breathing effect
+                float pulse = 1f + 0.15f * Mathf.Sin(Time.time * 8f);
+                _landingReticle.localScale = new Vector3(pulse, pulse, 1f);
+            }
+        }
+
         public void SetVisible(bool visible)
         {
             if (_lineRenderer != null) _lineRenderer.enabled = visible;
