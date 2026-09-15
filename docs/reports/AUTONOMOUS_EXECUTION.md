@@ -27,8 +27,8 @@ This document tracks the end-to-end execution of the BubbleShot autonomous devel
 | **Phase 3: Playable Loop** | `phase/03-first-playable-loop` | **MERGED** | [PR #4](https://github.com/BorisSokolov/BubbleShot/pull/4) | Gemini 3.8 Flash High (Fresh) | dotnet build & test: PASS | Merged commit `6d11f4e` |
 | **Phase 4: Progression** | `phase/04-progression-persistence` | **MERGED** | [PR #5](https://github.com/BorisSokolov/BubbleShot/pull/5) | Gemini 3.8 Flash High (Fresh) | 29 tests: PASS | Merged commit `116cde3` |
 | **Phase 5: Special Balls** | `phase/05-special-balls` | **MERGED** | [PR #6](https://github.com/BorisSokolov/BubbleShot/pull/6) | Gemini 3.8 Flash High (Fresh) | 39 tests: PASS | Merged commit `e9be6b4` |
-| **Phase 6: Polish** | `phase/06-polish` | **APPROVED** | [PR #7](https://github.com/BorisSokolov/BubbleShot/pull/7) | Gemini 3.8 Flash High (Fresh) | 46 tests: PASS | Approved for merge |
-| **Phase 7: Release Readiness**| `phase/07-release-readiness` | NOT STARTED | - | - | - | Queued |
+| **Phase 6: Polish** | `phase/06-polish` | **MERGED** | [PR #7](https://github.com/BorisSokolov/BubbleShot/pull/7) | Gemini 3.8 Flash High (Fresh) | 46 tests: PASS | Merged commit `f3e4b20` |
+| **Phase 7: Release Readiness**| `phase/07-release-readiness` | **IN PROGRESS** | Pending PR | Gemini 3.8 Flash High (Fresh) | Tests pending | Balancing, 10k Fuzz, Build Scripts & Release Docs |
 
 ---
 
