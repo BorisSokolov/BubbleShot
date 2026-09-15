@@ -106,6 +106,8 @@ namespace BubbleShot.Core
                 Star3Score = 9500
             };
             PopulateRows(lvl, 4, 4, 10004);
+            ReplaceBall(lvl, new HexCoord(2, 3), BallInfo.CreateBomb());
+            ReplaceBall(lvl, new HexCoord(1, 4), BallInfo.CreateWild());
             return lvl;
         }
 
@@ -180,6 +182,9 @@ namespace BubbleShot.Core
                 Star3Score = 16000
             };
             PopulateRows(lvl, 6, 5, 10008);
+            ReplaceBall(lvl, new HexCoord(3, 2), BallInfo.CreateBomb());
+            ReplaceBall(lvl, new HexCoord(3, 4), BallInfo.CreateBomb());
+            ReplaceBall(lvl, new HexCoord(2, 3), BallInfo.CreateWild());
             return lvl;
         }
 
@@ -219,6 +224,19 @@ namespace BubbleShot.Core
             };
             PopulateRows(lvl, 6, 6, 10010);
             return lvl;
+        }
+
+        private static void ReplaceBall(LevelDefinition lvl, HexCoord coord, BallInfo newBall)
+        {
+            for (int i = 0; i < lvl.StartingBalls.Count; i++)
+            {
+                if (lvl.StartingBalls[i].Coord == coord)
+                {
+                    lvl.StartingBalls[i] = new HexCoordBallPair(coord, newBall);
+                    return;
+                }
+            }
+            lvl.StartingBalls.Add(new HexCoordBallPair(coord, newBall));
         }
 
         private static void PopulateRows(LevelDefinition lvl, int rowCount, int colorCount, uint seed)
