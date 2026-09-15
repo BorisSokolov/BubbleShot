@@ -165,8 +165,8 @@ namespace BubbleShot.Core
 
             if (emptyNeighbors.Count == 0)
             {
-                // Fallback: check all empty cells in board
-                return board.Geometry.FindClosestCoord(impactPoint);
+                // Fallback: check all empty cells in board with strict parity awareness
+                return board.FindClosestEmptyCoord(impactPoint);
             }
 
             HexCoord bestCoord = emptyNeighbors[0];
@@ -224,6 +224,11 @@ namespace BubbleShot.Core
                         bestCoord = candidate;
                     }
                 }
+            }
+
+            if (bestDistSq == float.MaxValue)
+            {
+                return board.FindClosestEmptyCoord(impactPoint);
             }
 
             return bestCoord;

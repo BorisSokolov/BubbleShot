@@ -58,7 +58,7 @@ namespace BubbleShot.Core
         /// <summary>
         /// Finds the nearest valid hex grid cell to a given point in local space with deterministic tie-breaking.
         /// </summary>
-        public HexCoord FindClosestCoord(Vector2D localPos)
+        public HexCoord FindClosestCoord(Vector2D localPos, int topRowParity = 0)
         {
             // Estimate approximate row
             int approxRow = (int)MathF.Round(-localPos.Y / RowHeight);
@@ -70,11 +70,16 @@ namespace BubbleShot.Core
 
             for (int r = minR; r <= maxR; r++)
             {
-                int cols = (r & 1) == 0 ? EvenWidth : OddWidth;
+                bool isEven = ((r + topRowParity) & 1) == 0;
+                int cols = isEven ? EvenWidth : OddWidth;
                 for (int c = 0; c < cols; c++)
                 {
                     var coord = new HexCoord(r, c);
-                    var cellPos = CoordToLocalPosition(coord);
+                    float x = isEven
+                        ? (c * BallDiameter) + BallRadius
+                        : ((c + 1f) * BallDiameter);
+                    float y = -r * RowHeight;
+                    var cellPos = new Vector2D(x, y);
                     float distSq = Vector2D.DistanceSquared(localPos, cellPos);
 
                     // Deterministic tie-breaking: prefer smaller distance, then smaller row, then smaller col

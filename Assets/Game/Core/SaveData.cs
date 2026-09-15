@@ -52,6 +52,7 @@ namespace BubbleShot.Core
         public Dictionary<int, LevelRecord> Records { get; set; } = new Dictionary<int, LevelRecord>();
         public UserSettings Settings { get; set; } = new UserSettings();
         public SaveStatistics Stats { get; set; } = new SaveStatistics();
+        public List<int> SeenTutorials { get; set; } = new List<int>();
 
         public void RecordLevelComplete(int levelNumber, int score, int stars)
         {

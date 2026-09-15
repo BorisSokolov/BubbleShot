@@ -1,0 +1,20 @@
+{
+    "name": "BubbleShot.Editor",
+    "rootNamespace": "BubbleShot.Editor",
+    "references": [
+        "BubbleShot.Core",
+        "BubbleShot.Runtime",
+        "BubbleShot.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
