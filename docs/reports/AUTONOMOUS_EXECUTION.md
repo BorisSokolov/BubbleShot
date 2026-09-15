@@ -21,8 +21,8 @@ This document tracks the end-to-end execution of the BubbleShot autonomous devel
 
 | Phase | Branch | Status | PR / Ref | Reviewer | Validation | Outcome |
 |---|---|---|---|---|---|---|
-| **Design** | `design/game-and-architecture` | **APPROVED** | [PR #1](https://github.com/BorisSokolov/BubbleShot/pull/1) | Gemini 3.8 Flash High (Fresh) | Docs & Spec Audit: PASS | Approved, ready to merge |
-| **Phase 1: Foundation** | `phase/01-unity-foundation` | NOT STARTED | - | - | - | Queued |
+| **Design** | `design/game-and-architecture` | **MERGED** | [PR #1](https://github.com/BorisSokolov/BubbleShot/pull/1) | Gemini 3.8 Flash High (Fresh) | Docs & Spec Audit: PASS | Merged commit `120fed6` |
+| **Phase 1: Foundation** | `phase/01-unity-foundation` | **IN PROGRESS** | - | Gemini 3.8 Flash High (Fresh) | In Progress | Starting Unity Foundation |
 | **Phase 2: Engine** | `phase/02-deterministic-engine` | NOT STARTED | - | - | - | Queued |
 | **Phase 3: Playable Loop** | `phase/03-first-playable-loop` | NOT STARTED | - | - | - | Queued |
 | **Phase 4: Progression** | `phase/04-progression-persistence` | NOT STARTED | - | - | - | Queued |
