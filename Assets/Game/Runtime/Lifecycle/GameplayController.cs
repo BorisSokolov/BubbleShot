@@ -23,6 +23,7 @@ namespace BubbleShot.Runtime.Lifecycle
         [SerializeField] private AudioFeedbackPlaceholder? _audio;
         [SerializeField] private HapticFeedbackPlaceholder? _haptics;
         [SerializeField] private ResultsScreenPlaceholder? _resultsScreen;
+        [SerializeField] private FloatingCalloutManager? _callouts;
 
         public AuthoritativeEngine Engine { get; private set; } = null!;
         public bool IsResolvingAnimation { get; private set; }
@@ -192,6 +193,17 @@ namespace BubbleShot.Runtime.Lifecycle
                 bool matchesDone = false;
                 StartCoroutine(_boardView!.AnimateMatches(shotResult.MatchedCoords, () => matchesDone = true));
                 while (!matchesDone) yield return null;
+
+                // Trigger floating combo callout
+                if (shotResult.ComboMultiplier >= 1.5f && _callouts != null)
+                {
+                    string callout = FloatingCalloutManager.GetComboCalloutText(shotResult.ComboMultiplier);
+                    if (!string.IsNullOrEmpty(callout))
+                    {
+                        Vector3 pos = _boardView != null ? _boardView.transform.position + new Vector3(0f, -2f, 0f) : Vector3.zero;
+                        _callouts.ShowCallout(pos, callout, new Color(1f, 0.85f, 0.2f));
+                    }
+                }
             }
 
             // 4. Animate detached falling clusters if any
@@ -379,10 +391,30 @@ namespace BubbleShot.Runtime.Lifecycle
 
         private void UpdateHUD()
         {
-            if (_hud == null || Engine == null) return;
-            _hud.UpdateScore(Engine.Score, Engine.ComboMultiplier);
-            _hud.UpdateMisses(Engine.Pressure.ConsecutiveMisses);
-            _hud.UpdatePressure(Engine.Pressure.RemainingTime, Engine.Pressure.MaxTime);
+            if (Engine == null) return;
+            if (_hud != null)
+            {
+                _hud.UpdateScore(Engine.Score, Engine.ComboMultiplier);
+                _hud.UpdateMisses(Engine.Pressure.ConsecutiveMisses);
+                _hud.UpdatePressure(Engine.Pressure.RemainingTime, Engine.Pressure.MaxTime);
+            }
+            UpdateDangerState();
+        }
+
+        private void UpdateDangerState()
+        {
+            if (_dangerLine == null || Engine == null) return;
+            bool inDanger = false;
+            var occupied = Engine.Board.GetOccupiedCoords();
+            for (int i = 0; i < occupied.Count; i++)
+            {
+                if (occupied[i].Row >= 9)
+                {
+                    inDanger = true;
+                    break;
+                }
+            }
+            _dangerLine.SetWarningPulsing(inDanger);
         }
     }
 }

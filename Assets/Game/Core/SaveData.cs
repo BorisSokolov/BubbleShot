@@ -13,11 +13,24 @@ namespace BubbleShot.Core
 
     public class UserSettings
     {
+        public float MasterVolume { get; set; } = 1.0f;
         public float SfxVolume { get; set; } = 1.0f;
         public float MusicVolume { get; set; } = 0.8f;
         public bool HapticsEnabled { get; set; } = true;
         public bool ReducedMotionEnabled { get; set; } = false;
         public bool ColorBlindRunesEnabled { get; set; } = true;
+
+        public bool ReducedMotion
+        {
+            get => ReducedMotionEnabled;
+            set => ReducedMotionEnabled = value;
+        }
+
+        public bool ColorBlindRunes
+        {
+            get => ColorBlindRunesEnabled;
+            set => ColorBlindRunesEnabled = value;
+        }
     }
 
     public class SaveStatistics

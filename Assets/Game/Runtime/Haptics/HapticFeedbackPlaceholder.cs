@@ -13,19 +13,19 @@ namespace BubbleShot.Runtime.Haptics
         public void TriggerLightPulse()
         {
             if (!IsEnabled) return;
-            GameLogger.LogDebug("Haptics", "Haptic: Light vibration (wall bounce)");
+            HapticService.TriggerLightTap();
         }
 
         public void TriggerMediumPulse()
         {
             if (!IsEnabled) return;
-            GameLogger.LogDebug("Haptics", "Haptic: Medium vibration (match pop)");
+            HapticService.TriggerMediumPulse();
         }
 
         public void TriggerHeavyPulse()
         {
             if (!IsEnabled) return;
-            GameLogger.LogDebug("Haptics", "Haptic: Heavy vibration (row descent)");
+            HapticService.TriggerHeavyPulse();
         }
     }
 }
