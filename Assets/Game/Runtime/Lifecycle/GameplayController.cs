@@ -43,16 +43,28 @@ namespace BubbleShot.Runtime.Lifecycle
             if (_hud != null) _hud.PauseRequested -= OnPauseRequested;
         }
 
-        public void InitializeGameplay(uint seed = 424242)
+        public LevelDefinition CurrentLevel { get; private set; } = null!;
+        public int RowsSurvivedCount { get; private set; }
+
+        public void InitializeGameplay(int levelNumber = 0, uint seedOverride = 0)
         {
+            int lvlNum = levelNumber > 0 ? levelNumber : LevelSelectScreen.SelectedLevelNumber;
+            CurrentLevel = LevelCatalog.GetLevel(lvlNum);
+
+            uint seed = seedOverride != 0 ? seedOverride : CurrentLevel.Seed;
             var geometry = new BoardGeometry(evenWidth: 8, maxRows: 12, dangerRow: 11);
             var board = new HexBoard(geometry);
-            var pressure = new PressureEngine(maxTime: 12.0f, missPenalty: 2.0f, missThreshold: 4);
+            var pressure = new PressureEngine(
+                maxTime: CurrentLevel.BasePressureTime,
+                missPenalty: CurrentLevel.MissPenalty,
+                missThreshold: 4);
 
             Engine = new AuthoritativeEngine(seed, board, pressure);
+            Engine.ActiveColorCount = CurrentLevel.ActiveColorCount;
+            RowsSurvivedCount = 0;
 
-            // Populate starting Level 1 formation (3 rows of 4 colors)
-            PopulateInitialBoard(Engine);
+            // Populate starting formation from LevelDefinition
+            PopulateBoardFromLevel(Engine, CurrentLevel);
 
             if (_boardView != null)
             {
@@ -74,20 +86,15 @@ namespace BubbleShot.Runtime.Lifecycle
             }
 
             UpdateHUD();
-            GameLogger.LogInfo("GameplayController", "Level 1 initialized successfully.");
+            GameLogger.LogInfo("GameplayController", $"Level {CurrentLevel.LevelNumber} ('{CurrentLevel.LevelName}') initialized successfully.");
         }
 
-        private void PopulateInitialBoard(AuthoritativeEngine engine)
+        private void PopulateBoardFromLevel(AuthoritativeEngine engine, LevelDefinition level)
         {
-            // 3 starting rows: Row 0 (8 balls), Row 1 (7 balls), Row 2 (8 balls)
-            for (int r = 0; r < 3; r++)
+            for (int i = 0; i < level.StartingBalls.Count; i++)
             {
-                int cols = engine.Board.GetColumnCount(r);
-                for (int c = 0; c < cols; c++)
-                {
-                    var color = engine.Rng.NextColor(engine.ActiveColorCount);
-                    engine.Board.SetBall(new HexCoord(r, c), BallInfo.CreateNormal(color));
-                }
+                var pair = level.StartingBalls[i];
+                engine.Board.SetBall(pair.Coord, pair.Ball);
             }
         }
 
@@ -181,6 +188,7 @@ namespace BubbleShot.Runtime.Lifecycle
             // 5. If forced row drop was triggered by misses
             if (shotResult.RowDropped)
             {
+                RowsSurvivedCount++;
                 _audio?.PlayRowDescent();
                 _haptics?.TriggerHeavyPulse();
 
@@ -196,13 +204,14 @@ namespace BubbleShot.Runtime.Lifecycle
             BallInfo nextBall = BallInfo.CreateNormal(Engine.Rng.NextColor(Engine.ActiveColorCount));
             _launcher.SetNextProjectile(nextBall);
 
-            // 7. Check game over
-            if (shotResult.Status == GameResult.Victory)
+            // 7. Check game over and level objectives
+            EvaluateLevelObjective();
+
+            if (Engine.Status == GameResult.Victory)
             {
-                _audio?.PlayVictory();
-                _resultsScreen?.Show();
+                OnLevelVictory();
             }
-            else if (shotResult.Status == GameResult.Defeat)
+            else if (Engine.Status == GameResult.Defeat)
             {
                 _audio?.PlayDefeat();
                 _resultsScreen?.Show();
@@ -212,10 +221,63 @@ namespace BubbleShot.Runtime.Lifecycle
             IsResolvingAnimation = false;
         }
 
+        private void EvaluateLevelObjective()
+        {
+            if (Engine.Status == GameResult.Defeat) return;
+
+            bool won = false;
+            switch (CurrentLevel.ObjectiveType)
+            {
+                case LevelObjectiveType.ClearAll:
+                    won = Engine.Board.GetOccupiedCoords().Count == 0;
+                    break;
+                case LevelObjectiveType.ClearAnchor:
+                    // Check if Row 0 has 0 balls
+                    int row0Cols = Engine.Board.GetColumnCount(0);
+                    bool anchorEmpty = true;
+                    for (int c = 0; c < row0Cols; c++)
+                    {
+                        if (Engine.Board.IsOccupied(new HexCoord(0, c)))
+                        {
+                            anchorEmpty = false;
+                            break;
+                        }
+                    }
+                    won = anchorEmpty;
+                    break;
+                case LevelObjectiveType.TargetScore:
+                    won = Engine.Score >= CurrentLevel.TargetScore;
+                    break;
+                case LevelObjectiveType.SurviveRows:
+                    won = RowsSurvivedCount >= CurrentLevel.TargetRowsToSurvive;
+                    break;
+            }
+
+            if (won)
+            {
+                // Trigger victory!
+                typeof(AuthoritativeEngine).GetProperty("Status")?.SetValue(Engine, GameResult.Victory);
+            }
+        }
+
+        private void OnLevelVictory()
+        {
+            int stars = CurrentLevel.CalculateStars(Engine.Score);
+            string savePath = System.IO.Path.Combine(Application.persistentDataPath, "savegame.json");
+            var save = SaveSystem.LoadSafe(savePath);
+            save.RecordLevelComplete(CurrentLevel.LevelNumber, Engine.Score, stars);
+            SaveSystem.SaveAtomic(savePath, save);
+
+            _audio?.PlayVictory();
+            _resultsScreen?.Show();
+            GameLogger.LogInfo("GameplayController", $"Level {CurrentLevel.LevelNumber} Won! Score={Engine.Score}, Stars={stars}");
+        }
+
         private IEnumerator ExecuteRowDescentSequence()
         {
             IsResolvingAnimation = true;
             Engine.Pressure.IsPaused = true;
+            RowsSurvivedCount++;
 
             _audio?.PlayRowDescent();
             _haptics?.TriggerHeavyPulse();
@@ -228,8 +290,13 @@ namespace BubbleShot.Runtime.Lifecycle
             }
 
             UpdateHUD();
+            EvaluateLevelObjective();
 
-            if (Engine.Status == GameResult.Defeat)
+            if (Engine.Status == GameResult.Victory)
+            {
+                OnLevelVictory();
+            }
+            else if (Engine.Status == GameResult.Defeat)
             {
                 _audio?.PlayDefeat();
                 _resultsScreen?.Show();
