@@ -13,6 +13,8 @@ namespace BubbleShot.Runtime.Audio
         public void PlayWallBounce() => GameLogger.LogDebug("Audio", "SFX: Wall bounce");
         public void PlayAttach() => GameLogger.LogDebug("Audio", "SFX: Ball attached");
         public void PlayMatchPop(int count) => GameLogger.LogDebug("Audio", $"SFX: Match popped {count} balls");
+        public void PlayBombExplosion(int count) => GameLogger.LogDebug("Audio", $"SFX: Bomb explosion blasted {count} balls");
+        public void PlayWildMatch(int count) => GameLogger.LogDebug("Audio", $"SFX: Wild multi-color popped {count} balls");
         public void PlayClusterDrop(int count) => GameLogger.LogDebug("Audio", $"SFX: Dropped {count} detached balls");
         public void PlayRowDescent() => GameLogger.LogDebug("Audio", "SFX: Pressure row drop");
         public void PlayVictory() => GameLogger.LogDebug("Audio", "SFX: Victory fanfare");

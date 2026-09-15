@@ -18,6 +18,46 @@ namespace BubbleShot.Runtime.Presentation
         public HexCoord Coord { get; private set; }
         public BallInfo Info { get; private set; }
 
+        private Vector3 _baseScale = Vector3.one;
+        private bool _isAnimating;
+
+        private void Awake()
+        {
+            _baseScale = transform.localScale;
+        }
+
+        private void Update()
+        {
+            if (_isAnimating) return;
+
+            if (Info.Type == BallType.Wild && _spriteRenderer != null)
+            {
+                // Prismatic rainbow color cycle
+                _spriteRenderer.color = Color.HSVToRGB((Time.time * 0.5f) % 1.0f, 0.75f, 1.0f);
+            }
+            else if (Info.Type == BallType.Bomb)
+            {
+                // Subtle fuse pulsation
+                float pulse = 1f + 0.06f * Mathf.Sin(Time.time * 8f);
+                transform.localScale = _baseScale * pulse;
+            }
+        }
+
+        public static Color GetColor(BallInfo info)
+        {
+            if (info.Type == BallType.Bomb)
+            {
+                return new Color(0.85f, 0.12f, 0.10f); // Deep crimson
+            }
+
+            if (info.Type == BallType.Wild)
+            {
+                return new Color(1.0f, 0.95f, 0.85f); // Prismatic base
+            }
+
+            return GetColor(info.Color);
+        }
+
         public static Color GetColor(BallColor color)
         {
             return color switch
@@ -30,6 +70,21 @@ namespace BubbleShot.Runtime.Presentation
                 BallColor.Orange => new Color(1.0f, 0.58f, 0.0f),
                 _ => Color.white
             };
+        }
+
+        public static string GetGlyph(BallInfo info)
+        {
+            if (info.Type == BallType.Bomb)
+            {
+                return "\u25CE"; // Bullseye / fuse target ◎
+            }
+
+            if (info.Type == BallType.Wild)
+            {
+                return "\u2726"; // Sparkle / star ✦
+            }
+
+            return GetGlyph(info.Color);
         }
 
         public static string GetGlyph(BallColor color)
@@ -53,12 +108,12 @@ namespace BubbleShot.Runtime.Presentation
 
             if (_spriteRenderer != null)
             {
-                _spriteRenderer.color = GetColor(info.Color);
+                _spriteRenderer.color = GetColor(info);
             }
 
             if (_glyphText != null)
             {
-                _glyphText.text = GetGlyph(info.Color);
+                _glyphText.text = GetGlyph(info);
             }
         }
 
@@ -69,6 +124,7 @@ namespace BubbleShot.Runtime.Presentation
 
         public IEnumerator AnimatePop(Action onComplete)
         {
+            _isAnimating = true;
             float elapsed = 0f;
             float duration = 0.2f;
             Vector3 origScale = transform.localScale;
@@ -93,6 +149,7 @@ namespace BubbleShot.Runtime.Presentation
 
         public IEnumerator AnimateFall(Action onComplete)
         {
+            _isAnimating = true;
             float elapsed = 0f;
             float duration = 0.5f;
             Vector3 velocity = new Vector3(UnityEngine.Random.Range(-1.5f, 1.5f), UnityEngine.Random.Range(2f, 4f), 0f);

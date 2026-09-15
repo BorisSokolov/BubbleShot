@@ -167,8 +167,27 @@ namespace BubbleShot.Runtime.Lifecycle
             // 3. Animate matches if any
             if (shotResult.MatchedCoords.Count > 0)
             {
-                _audio?.PlayMatchPop(shotResult.MatchedCoords.Count);
-                _haptics?.TriggerMediumPulse();
+                if (shotResult.IsBombDetonation)
+                {
+                    _audio?.PlayBombExplosion(shotResult.MatchedCoords.Count);
+                    _haptics?.TriggerHeavyPulse();
+
+                    bool reducedMotion = SaveSystem.CurrentSave?.Settings.ReducedMotion ?? false;
+                    if (!reducedMotion)
+                    {
+                        StartCoroutine(AnimateScreenShake(0.2f, 0.15f));
+                    }
+                }
+                else if (projectile.Type == BallType.Wild)
+                {
+                    _audio?.PlayWildMatch(shotResult.MatchedCoords.Count);
+                    _haptics?.TriggerMediumPulse();
+                }
+                else
+                {
+                    _audio?.PlayMatchPop(shotResult.MatchedCoords.Count);
+                    _haptics?.TriggerMediumPulse();
+                }
 
                 bool matchesDone = false;
                 StartCoroutine(_boardView!.AnimateMatches(shotResult.MatchedCoords, () => matchesDone = true));
@@ -200,8 +219,8 @@ namespace BubbleShot.Runtime.Lifecycle
             // 6. Update HUD
             UpdateHUD();
 
-            // Replenish next projectile in launcher
-            BallInfo nextBall = BallInfo.CreateNormal(Engine.Rng.NextColor(Engine.ActiveColorCount));
+            // Replenish next projectile in launcher with combo special ball rewards
+            BallInfo nextBall = Engine.GenerateNextProjectile();
             _launcher.SetNextProjectile(nextBall);
 
             // 7. Check game over and level objectives
@@ -335,6 +354,27 @@ namespace BubbleShot.Runtime.Lifecycle
             {
                 SetPause(true);
             }
+        }
+
+        private IEnumerator AnimateScreenShake(float duration, float intensity)
+        {
+            Camera cam = Camera.main ?? FindFirstObjectByType<Camera>();
+            if (cam == null) yield break;
+
+            Vector3 originalPos = cam.transform.position;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float damper = 1f - Mathf.Clamp01(elapsed / duration);
+                float x = (UnityEngine.Random.value * 2f - 1f) * intensity * damper;
+                float y = (UnityEngine.Random.value * 2f - 1f) * intensity * damper;
+                cam.transform.position = originalPos + new Vector3(x, y, 0f);
+                yield return null;
+            }
+
+            cam.transform.position = originalPos;
         }
 
         private void UpdateHUD()

@@ -17,6 +17,7 @@ namespace BubbleShot.Core
         public List<HexCoord> MatchedCoords { get; } = new List<HexCoord>();
         public List<HexCoord> DetachedCoords { get; } = new List<HexCoord>();
         public bool RowDropped { get; set; }
+        public bool IsBombDetonation { get; set; }
         public int ScoreEarned { get; set; }
         public float ComboMultiplier { get; set; }
         public GameResult Status { get; set; }
@@ -39,6 +40,7 @@ namespace BubbleShot.Core
 
         public int Score { get; private set; }
         public float ComboMultiplier { get; private set; } = 1.0f;
+        public int ConsecutiveMatches { get; private set; }
         public GameResult Status { get; private set; } = GameResult.Ongoing;
         public int ActiveColorCount { get; set; } = 4;
 
@@ -47,6 +49,19 @@ namespace BubbleShot.Core
             Board = board ?? new HexBoard();
             Pressure = pressure ?? new PressureEngine();
             Rng = new DeterministicRng(seed);
+        }
+
+        public BallInfo GenerateNextProjectile()
+        {
+            if (ConsecutiveMatches > 0 && ConsecutiveMatches % 3 == 0)
+            {
+                // Alternate between Bomb and Wild on 3-combo milestones
+                return (ConsecutiveMatches / 3) % 2 == 1
+                    ? BallInfo.CreateBomb()
+                    : BallInfo.CreateWild();
+            }
+
+            return BallInfo.CreateNormal(Rng.NextColor(ActiveColorCount));
         }
 
         public ShotExecutionResult ExecuteShot(Vector2D origin, Vector2D direction, BallInfo projectile)
@@ -65,9 +80,21 @@ namespace BubbleShot.Core
             // 2. Attach projectile to board
             Board.SetBall(snapCoord, projectile);
 
-            // 3. Match resolution
-            var matched = MatchResolver.FindMatchingGroup(Board, snapCoord);
-            if (matched.Count >= MatchResolver.MinimumMatchSize)
+            // 3. Match / Blast resolution
+            bool isBomb = projectile.Type == BallType.Bomb;
+            shotResult.IsBombDetonation = isBomb;
+
+            var matched = isBomb
+                ? MatchResolver.ResolveBombBlast(Board, snapCoord)
+                : (projectile.Type == BallType.Wild
+                    ? MatchResolver.ResolveWildMatches(Board, snapCoord)
+                    : MatchResolver.FindMatchingGroup(Board, snapCoord));
+
+            bool isSuccessful = isBomb
+                ? matched.Count > 0
+                : matched.Count >= MatchResolver.MinimumMatchSize;
+
+            if (isSuccessful)
             {
                 shotResult.MatchedCoords.AddRange(matched);
                 for (int i = 0; i < matched.Count; i++)
@@ -84,8 +111,9 @@ namespace BubbleShot.Core
                 }
 
                 // 5. Score and combo updates
+                ConsecutiveMatches++;
                 ComboMultiplier = MathF.Min(ComboMultiplier + 0.5f, 4.0f);
-                int baseMatchScore = matched.Count * 100;
+                int baseMatchScore = matched.Count * (isBomb ? 150 : 100);
                 int detachedBonus = detached.Count * 200;
                 int earned = (int)((baseMatchScore + detachedBonus) * ComboMultiplier);
 
@@ -99,6 +127,7 @@ namespace BubbleShot.Core
             else
             {
                 // Unsuccessful shot
+                ConsecutiveMatches = 0;
                 ComboMultiplier = 1.0f;
                 shotResult.ComboMultiplier = 1.0f;
 
@@ -123,6 +152,8 @@ namespace BubbleShot.Core
             bool timerExpired = Pressure.Tick(deltaTime);
             if (timerExpired)
             {
+                ConsecutiveMatches = 0;
+                ComboMultiplier = 1.0f;
                 var dummyResult = new ShotExecutionResult(new TrajectoryResult(), new HexCoord(0, 0));
                 TriggerRowDescent(dummyResult);
                 EvaluateGameStatus();
