@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - m_Enabled: 1
+    m_Path: Assets/Game/Scenes/Bootstrap.unity
+    m_Guid: 11111111111111111111111111111101
+  - m_Enabled: 1
+    m_Path: Assets/Game/Scenes/MainMenu.unity
+    m_Guid: 11111111111111111111111111111102
+  - m_Enabled: 1
+    m_Path: Assets/Game/Scenes/Gameplay.unity
+    m_Guid: 11111111111111111111111111111103
+  m_configObjects: {}
